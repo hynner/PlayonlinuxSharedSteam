@@ -1,0 +1,37 @@
+#!/bin/bash
+[ "$PLAYONLINUX" = "" ] && exit 0
+source "$PLAYONLINUX/lib/sources"
+
+WORKING_WINE_VERSION="1.7.22"
+PREFIX="Steam4All"
+TITLE="Shared steam"
+INSTALL_PATH=~/WINEApps
+mkdir -p "$INSTALL_PATH/Steam"
+
+POL_Debug_Init
+# check that instal_path is on the same partition as wineprefixes
+[ `POL_System_FindPart $INSTALL_PATH/Steam` != `POL_System_FindPart $POL_USER_ROOT/wineprefix` ] && POL_Debug_Fatal "Your playonlinux wineprefixes aren't on the same partition as $INSTALL_PATH. You'll have to manually edit this script and change INSTALL_PATH variable to point somewhere on the same partition and you'll have to set this path to POL_Install_steam function override as well."
+
+POL_SetupWindow_Init
+ 
+POL_Wine_SelectPrefix "$PREFIX"
+POL_System_SetArch "x86"
+POL_Wine_PrefixCreate $WORKING_WINE_VERSION
+
+# using original POL_Install_steam function to make a new steam install
+POL_Call POL_Install_steam
+
+mv "$WINEPREFIX/drive_c/Program Files/Steam" "$INSTALL_PATH"
+
+mkdir "$WINEPREFIX/drive_c/$PROGRAMFILES/Steam"
+
+# allow function override and install overriden POL_Install_steam
+POL_Config_Write "ALLOW_FUNCTION_OVERRIDES" "TRUE"
+
+# download POL_Install_steam and install it
+POL_System_TmpCreate "$PREFIX"
+POL_System_Wget https://raw.githubusercontent.com/hynner/PlayonlinuxSharedSteam/master/POL_Install_steam "$POL_System_TmpDir/POL_Install_steam"
+mv "$POL_System_TmpDir/POL_Install_steam" "$POL_USER_ROOT/configurations/function_overrides"
+POL_Call POL_Install_steam
+POL_SetupWindow_Close
+exit

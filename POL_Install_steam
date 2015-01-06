@@ -1,0 +1,31 @@
+#!/bin/bash
+# set it so that it points to your steam installation, no / at the end!
+# also, because of hardlink usage this must be on the same disc partition as the PlayOnLinux wineprefixes
+STEAM_PATH=~/WINEApps/Steam
+[ ! -e "$STEAM_PATH/Steam.exe" ] && POL_Debug_Fatal "Steam wasn't found in path $STEAM_PATH, check your STEAM_PATH variable in POL_Install_steam function override"
+POL_LoadVar_PROGRAMFILES
+# mandatory dependencies, taken from original POL_Install_steam script
+POL_Wine_InstallFonts
+POL_Call POL_Install_corefonts
+POL_Call POL_Function_FontsSmoothRGB
+cd "$WINEPREFIX/drive_c/$PROGRAMFILES"
+mkdir Steam
+# hardlink, so that it can be found by POL_SHORTCUT
+ln "$STEAM_PATH/Steam.exe" Steam/Steam.exe
+# everything else will be symlink, because hardlinks don't work with directories
+ln -s "$STEAM_PATH"/* ./Steam/
+# disable dwrite, so that text in steam is visible
+cat << EOF > "$POL_USER_ROOT/tmp/steam_dwrite_disable.reg"
+[HKEY_CURRENT_USER\\Software\\Valve\\Steam]
+"DWriteEnable"=dword:00000000
+EOF
+regedit "$POL_USER_ROOT/tmp/steam_dwrite_disable.reg"
+
+# dll overrides, taken from original script
+POL_Wine_OverrideDLL "" "gameoverlayrenderer"
+POL_Wine_OverrideDLL "" "dwrite"
+
+POL_SetupWindow_textbox "Steam shortcut name, blank if you don't want shortcut."
+if [ -n "$APP_ANSWER" ]; then
+    POL_Shortcut "steam.exe" "$APP_ANSWER"
+fi
