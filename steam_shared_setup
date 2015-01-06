@@ -30,7 +30,7 @@ POL_Config_Write "ALLOW_FUNCTION_OVERRIDES" "TRUE"
 
 # download POL_Install_steam and install it
 POL_System_TmpCreate "$PREFIX"
-POL_System_Wget https://raw.githubusercontent.com/hynner/PlayonlinuxSharedSteam/master/POL_Install_steam "$POL_System_TmpDir/POL_Install_steam"
+POL_System_wget https://raw.githubusercontent.com/hynner/PlayonlinuxSharedSteam/master/POL_Install_steam "POL_Install_steam script" -O "$POL_System_TmpDir/POL_Install_steam"
 mv "$POL_System_TmpDir/POL_Install_steam" "$POL_USER_ROOT/configurations/function_overrides"
 POL_Call POL_Install_steam
 POL_SetupWindow_Close
